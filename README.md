@@ -94,3 +94,5 @@ Create DB User with master permissions: https://aws.amazon.com/premiumsupport/kn
 ### Notes
 1. I didn't have FK relationships/enforcement in DB
 2. I could have had a joining table for genres, but for sake of time did not do that (demonstrated with people2movie already)
+3. Authorizer caching is not implemented
+4. Boilerplate code in lambdas - copy/pasted vs. creating node module
