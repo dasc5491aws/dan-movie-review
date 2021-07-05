@@ -31,7 +31,7 @@ Ratings
 ----
 ```json
 {
-    "userId": "string",
+    "userName": "string",
     "movieId": "string",
     "text": "string",
     "score": "number"
@@ -61,7 +61,7 @@ M_LANGUAGE
 
 Table rating:
 R_KEY
-R_U_KEY
+R_USERNAME
 R_M_KEY
 R_TEXT
 R_SCORE
