@@ -1,37 +1,49 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
-const axios = require('axios')
-const { cognito: { clientId }, apiBaseUrl } = require('./config')
+const { accessTokenRequest, dataApiRequest } = require('./request')
+
 import Cookies from 'universal-cookie';
 const cookies = new Cookies();
 
-class VideoDisplay extends React.Component {
+class Movie extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { content: null }
     }
 
     render() {
-        return [this.state.content]
+        const { imgSrc,
+            movieId,
+            overallScore,
+            title } = this.props.data
+
+        return (
+            <div class="movie" style={{ border: 'thin solid black' }}>
+                <h4><b>{title}</b></h4>
+                <p>Overall Score: {overallScore || 'Unrated'}</p>
+                <button onClick={() => { location.assign(`${window.location.href}movieDetails.html?movieId=${movieId}`) }} >Details</button>
+            </div>
+        )
+    }
+}
+
+class MovieDisplay extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { movies: [] }
+    }
+
+    render() {
+        return this.state.movies.map(movieData => (<Movie data={movieData} />))
     }
 
     componentDidMount() {
-        this.displayMovies()
+        this.getMovies()
     }
 
-    async displayMovies() {
-        const { data } = await axios({
-            method: 'get',
-            url: `${apiBaseUrl}/movies`,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Authorization': cookies.get('accessToken')
-            }
-        })
+    async getMovies() {
+        const { data } = await dataApiRequest('get', '/movies')
 
-        console.log(data)
-        this.setState({ content: (<h1>fuck this</h1>) })
+        this.setState({ movies: data })
     }
 }
 
@@ -43,7 +55,7 @@ class SignInDisplay extends React.Component {
     }
 
     render() {
-        return [this.state.content]
+        return this.state.content
     }
 
     componentDidMount() {
@@ -52,21 +64,8 @@ class SignInDisplay extends React.Component {
 
     displaySignIn() {
         const signInFunc = async () => {
-            const { data: { AuthenticationResult: { AccessToken } } } = await axios({
-                method: 'post',
-                url: 'https://cognito-idp.us-east-2.amazonaws.com/',
-                data: {
-                    AuthFlow: 'USER_PASSWORD_AUTH',
-                    ClientId: clientId,
-                    AuthParameters: { USERNAME: document.getElementById('username').value, PASSWORD: document.getElementById("password").value },
-                    ClientMetadata: {}
-                },
-                headers: {
-                    'Content-Type': 'application/x-amz-json-1.1',
-                    'x-amz-target': 'AWSCognitoIdentityProviderService.InitiateAuth'
-                }
-            })
-            cookies.set(`accessToken`, AccessToken, { path: '/' })
+            const { data: { AuthenticationResult: { AccessToken } } } = await accessTokenRequest()
+            cookies.set(`accessToken`, AccessToken, { path: '/', maxAge: 3600 })
             this.parent.setState({ loggedIn: true })
         }
 
@@ -84,7 +83,6 @@ class SignInDisplay extends React.Component {
     }
 }
 
-
 class Display extends React.Component {
     constructor(props) {
         super(props);
@@ -94,7 +92,7 @@ class Display extends React.Component {
     }
 
     render() {
-        return [this.state.loggedIn ? <VideoDisplay /> : <SignInDisplay parent={this} />]
+        return this.state.loggedIn ? <MovieDisplay /> : <SignInDisplay parent={this} />
     }
 }
 

@@ -2,7 +2,7 @@ module.exports = {
     mode: 'development',
     entry: {
         index: './src/js/index.js',
-        movie: './src/js/movie.js'
+        movieDetails: './src/js/movieDetails.js'
     },
     module: {
         rules: [
