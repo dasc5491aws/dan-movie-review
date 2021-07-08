@@ -1,8 +1,9 @@
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry: {
         index: './src/js/index.js',
-        movieDetails: './src/js/movieDetails.js'
+        movieDetails: './src/js/movieDetails.js',
+        addMovie: './src/js/addMovie.js'
     },
     module: {
         rules: [
@@ -21,7 +22,7 @@ module.exports = {
         path: __dirname + '/build',
     },
     devServer: {
-        contentBase: __dirname,
+        contentBase: __dirname + '/build',
         compress: true,
         port: 9000
     }

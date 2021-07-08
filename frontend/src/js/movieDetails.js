@@ -88,7 +88,6 @@ class RatingsDisplay extends React.Component {
                 score: document.getElementById('score').value,
                 movieId: urlParams.get('movieId')
             }
-            console.log(body)
             await dataApiRequest('post', `/movies/${urlParams.get('movieId')}/ratings`, body)
             return this.getRatings()
         }

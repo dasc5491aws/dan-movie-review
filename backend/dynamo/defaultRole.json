@@ -1,0 +1,20 @@
+{
+    "PolicyDocument": {
+        "Statement": [
+            {
+                "Action": "execute-api:Invoke",
+                "Effect": "Allow",
+                "Resource": [
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/GET/movies",
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/GET/movies/*",
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/GET/movies/*/people",
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/GET/movies/*/ratings",
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/POST/movies/*/ratings",
+                    "arn:aws:execute-api:us-east-2:782474673763:80400gdvjj/*/GET/user-details"
+                ]
+            }
+        ],
+        "Version": "2012-10-17"
+    },
+    "Role": "default"
+}

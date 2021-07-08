@@ -1,6 +1,6 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
-const { accessTokenRequest, dataApiRequest } = require('./request')
+const { initiateAuthSession, dataApiRequest, isAdmin } = require('./request')
 
 import Cookies from 'universal-cookie';
 const cookies = new Cookies();
@@ -8,19 +8,24 @@ const cookies = new Cookies();
 class Movie extends React.Component {
     constructor(props) {
         super(props);
+        this.movieId = this.props.movieId
     }
 
     render() {
-        const { imgSrc,
-            movieId,
-            overallScore,
-            title } = this.props.data
+        const {
+            data: { imgSrc,
+                movieId,
+                overallScore,
+                title },
+            displayAdminButtons
+        } = this.props
 
         return (
             <div class="movie" style={{ border: 'thin solid black' }}>
                 <h4><b>{title}</b></h4>
                 <p>Overall Score: {overallScore || 'Unrated'}</p>
                 <button onClick={() => { location.assign(`${window.location.href}movieDetails.html?movieId=${movieId}`) }} >Details</button>
+                {isAdmin() ? (<DeleteMovieButton key={movieId} movieId={movieId} getMoviesCallback={this.props.rerenderParentCallback} />) : ''}
             </div>
         )
     }
@@ -29,21 +34,33 @@ class Movie extends React.Component {
 class MovieDisplay extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { movies: [] }
+        this.state = { movies: [], moviedRequested: false }
+        this.rerenderParentCallback = this.getMovies.bind(this);
     }
 
     render() {
-        return this.state.movies.map(movieData => (<Movie data={movieData} />))
+        return (<div class='movie-display'>
+            {this.state.moviedRequested ? '' : 'Loading Movies...'}
+            {this.state.movies.map(movieData => (<Movie key={movieData.movieId} rerenderParentCallback={this.rerenderParentCallback} data={movieData} />))}
+            {isAdmin() ? (<div><br /><AddMovieButton /></div>) : ''}
+        </div>)
     }
+
+
 
     componentDidMount() {
         this.getMovies()
     }
 
     async getMovies() {
-        const { data } = await dataApiRequest('get', '/movies')
-
-        this.setState({ movies: data })
+        let data = []
+        try {
+            const { data: movieData } = await dataApiRequest('get', '/movies')
+            data = movieData
+        } catch (e) {
+            //404
+        }
+        this.setState({ movies: data, moviedRequested: true })
     }
 }
 
@@ -64,8 +81,8 @@ class SignInDisplay extends React.Component {
 
     displaySignIn() {
         const signInFunc = async () => {
-            const { data: { AuthenticationResult: { AccessToken } } } = await accessTokenRequest(document.getElementById('username').value, document.getElementById("password").value)
-            cookies.set(`accessToken`, AccessToken, { path: '/', maxAge: 3600 })
+            await initiateAuthSession(document.getElementById('username').value, document.getElementById("password").value)
+
             this.parent.setState({ loggedIn: true })
         }
 
@@ -83,6 +100,55 @@ class SignInDisplay extends React.Component {
     }
 }
 
+class SignOutButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.parent = props.parent
+    }
+
+    render() {
+        const signOutFunc = () => {
+            cookies.remove('accessLevel')
+            cookies.remove('accessToken')
+            this.parent.setState({ loggedIn: false })
+        }
+
+        return (
+            <button onClick={signOutFunc}>Sign Out</button>
+        )
+    }
+}
+
+class AddMovieButton extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <button onClick={() => { location.assign(`${window.location.href}addMovie.html`) }} >Admin Add Movie</button>
+        )
+    }
+}
+
+class DeleteMovieButton extends React.Component {
+    constructor(props) {
+        super(props);
+        this.movieId = this.props.movieId
+    }
+
+    render() {
+        const deleteMovieFunc = async () => {
+            await dataApiRequest('DELETE', `/movies/${this.movieId}`)
+            this.props.getMoviesCallback()
+        }
+
+        return (
+            <button onClick={deleteMovieFunc} >Admin Delete Movie</button>
+        )
+    }
+}
+
 class Display extends React.Component {
     constructor(props) {
         super(props);
@@ -92,7 +158,15 @@ class Display extends React.Component {
     }
 
     render() {
-        return this.state.loggedIn ? <MovieDisplay /> : <SignInDisplay parent={this} />
+        return this.state.loggedIn
+            ? (
+                <div>
+                    <MovieDisplay />
+                    < br />
+                    <SignOutButton parent={this} />
+                </div>
+            )
+            : (<SignInDisplay parent={this} />)
     }
 }
 
