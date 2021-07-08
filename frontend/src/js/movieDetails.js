@@ -63,9 +63,13 @@ class CastAndCrewDisplay extends React.Component {
     }
 
     async getCastAndCrew() {
-        const { data } = await dataApiRequest('get', `/movies/${urlParams.get('movieId')}/people`)
+        try {
+            const { data } = await dataApiRequest('get', `/movies/${urlParams.get('movieId')}/people`)
 
-        this.setState({ castAndCrew: data })
+            this.setState({ castAndCrew: data })
+        } catch (e) {
+            this.setState({ castAndCrew: [] })
+        }
     }
 }
 
@@ -77,11 +81,30 @@ class RatingsDisplay extends React.Component {
 
     render() {
         if (!this.state.ratingsObj) return 'Fetching Ratings...'
+
+        const addRatingFunc = async () => {
+            const body = {
+                text: document.getElementById('ratingText').value,
+                score: document.getElementById('score').value,
+                movieId: urlParams.get('movieId')
+            }
+            console.log(body)
+            await dataApiRequest('post', `/movies/${urlParams.get('movieId')}/ratings`, body)
+            return this.getRatings()
+        }
+
         return (
             <div class="ratings" style={{ border: 'thin solid black' }}>
                 <h4><b>Ratings</b></h4>
                 <h3><b>Overall Score: {this.state.ratingsObj.overallScore}</b></h3>
                 {this.state.ratingsObj.ratings.map(a => (<p>{JSON.stringify(a)}</p>))}
+                <div class='addRating'>
+                    <label for="score">Score (1.0-5.0):</label>
+                    <input type="number" id="score" name="score" step="0.1" min="1" max="5" />
+                    <label for="ratingText">Comment:</label>
+                    <input type="text" id="ratingText" name="ratingText" />
+                    <button type="submit" onClick={addRatingFunc}>Add Your Rating</button>
+                </div>
             </div>
         );
     }
@@ -91,9 +114,13 @@ class RatingsDisplay extends React.Component {
     }
 
     async getRatings() {
-        const { data } = await dataApiRequest('get', `/movies/${urlParams.get('movieId')}/ratings`)
+        try {
+            const { data } = await dataApiRequest('get', `/movies/${urlParams.get('movieId')}/ratings`)
 
-        this.setState({ ratingsObj: data })
+            this.setState({ ratingsObj: data })
+        } catch (e) {
+            this.setState({ ratingsObj: { overallScore: null, ratings: [] } })
+        }
     }
 }
 

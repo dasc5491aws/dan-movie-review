@@ -64,7 +64,7 @@ class SignInDisplay extends React.Component {
 
     displaySignIn() {
         const signInFunc = async () => {
-            const { data: { AuthenticationResult: { AccessToken } } } = await accessTokenRequest()
+            const { data: { AuthenticationResult: { AccessToken } } } = await accessTokenRequest(document.getElementById('username').value, document.getElementById("password").value)
             cookies.set(`accessToken`, AccessToken, { path: '/', maxAge: 3600 })
             this.parent.setState({ loggedIn: true })
         }

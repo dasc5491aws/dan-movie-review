@@ -3,13 +3,13 @@ const { cognito: { clientId }, apiBaseUrl } = require('./config')
 import Cookies from 'universal-cookie';
 const cookies = new Cookies();
 
-const accessTokenRequest = async () => axios({
+const accessTokenRequest = async (USERNAME, PASSWORD) => axios({
     method: 'post',
     url: 'https://cognito-idp.us-east-2.amazonaws.com/',
     data: {
         AuthFlow: 'USER_PASSWORD_AUTH',
         ClientId: clientId,
-        AuthParameters: { USERNAME: document.getElementById('username').value, PASSWORD: document.getElementById("password").value },
+        AuthParameters: { USERNAME, PASSWORD },
         ClientMetadata: {}
     },
     headers: {
@@ -18,14 +18,15 @@ const accessTokenRequest = async () => axios({
     }
 })
 
-const dataApiRequest = async (method, url) => axios({
-    method: 'get',
+const dataApiRequest = async (method, url, data) => axios({
+    method,
     url: `${apiBaseUrl}${url}`,
     headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Authorization': cookies.get('accessToken')
-    }
+    },
+    data
 })
 
 export {
